@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Camera Security Lab</title>
+<style>
+body{background:#080808;color:#fff;font-family:Arial;text-align:center;padding:25px}
+h1{color:#00ff66}
+#status{font-size:24px;font-weight:bold;margin:20px}
+video,img{width:100%;max-width:600px;border-radius:12px;margin:10px}
+button{padding:15px 25px;margin:8px;border:0;border-radius:10px;font-weight:bold}
+</style>
+</head>
+<body>
+
+<h1>CAMERA SECURITY LAB</h1>
+<div id="status">TARGET HIT</div>
+
+<video id="video" autoplay playsinline></video>
+<br>
+
+<button onclick="startCamera()">CAMERA TEST</button>
+<button onclick="capture()">CAPTURE</button>
+
+<canvas id="canvas" style="display:none"></canvas>
+<img id="photo">
+
+<script>
+const video=document.getElementById("video");
+const canvas=document.getElementById("canvas");
+const photo=document.getElementById("photo");
+const status=document.getElementById("status");
+
+async function startCamera(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({
+      video:true,
+      audio:false
+    });
+
+    video.srcObject=stream;
+    await video.play();
+
+    status.textContent="CAMERA PERMISSION GRANTED";
+    status.style.color="#00ff66";
+  }catch(e){
+    status.textContent="CAMERA ACCESS DENIED";
+    status.style.color="red";
+  }
+}
+
+async function capture(){
+  if(!video.srcObject){
+    alert("Start camera first");
+    return;
+  }
+
+  await video.play();
+
+  await new Promise(r=>{
+    if(video.readyState>=2 && video.videoWidth>0) r();
+    else video.addEventListener("loadeddata",r,{once:true});
+  });
+
+  if(!video.videoWidth || !video.videoHeight){
+    alert("VIDEO FRAME NOT READY");
+    return;
+  }
+
+  canvas.width=video.videoWidth;
+  canvas.height=video.videoHeight;
+
+  const ctx=canvas.getContext("2d");
+  ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+  photo.src=canvas.toDataURL("image/jpeg",0.95);
+  status.textContent="CAPTURE COMPLETE";
+}
+</script>
+
+</body>
+</html>
